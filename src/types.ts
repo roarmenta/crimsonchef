@@ -74,6 +74,8 @@ export interface DomainText {
   itemNoun: string;
   blueprintsHeading: string;
   blueprintsNote: string;
+  /** What the screenshot scanner should look for, how to collapse categories, and what to ignore. */
+  scanGuide: string;
 }
 
 /** Everything the engine and UI need to run one crafting system (cooking, Abyss Gear, …). */

@@ -7,8 +7,10 @@ const CSP = [
   "default-src 'none'",
   "script-src 'self'",
   "style-src 'self'",
-  "img-src 'self' data:",
-  "connect-src 'self'",
+  "img-src 'self' data: blob:",
+  // api.anthropic.com: the BYO-key inventory scanner calls Claude directly
+  // from the browser (see src/scanner.ts).
+  "connect-src 'self' https://api.anthropic.com",
   "base-uri 'self'",
   "form-action 'none'",
 ].join('; ');

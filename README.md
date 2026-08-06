@@ -24,6 +24,18 @@ Two sections, each with its own pouch:
 
 Fan-made tool — not affiliated with Pearl Abyss, IGN, or gaming.tools.
 
+## Inventory screenshot scanning
+
+The 📷 **Scan screenshot** button reads a screenshot (or phone photo) of the in-game
+Materials inventory and adds recognized ingredients to the pouch, with a review step before
+anything is added. It uses Claude vision via a bring-your-own Anthropic API key: the key is
+stored only in the browser's localStorage and sent only to api.anthropic.com, and each scan
+costs a few cents on the key owner's account. Type `demo` instead of a key to preview the
+flow with sample data. Images are sent to Anthropic for analysis. The scan engine
+(`src/scanner.ts`) is lazy-loaded so the SDK stays out of the main bundle, and responses are
+constrained by a structured-output schema whose ingredient ids are an enum of the app's
+vocabulary — out-of-vocabulary results are impossible.
+
 ## Develop
 
 ```bash

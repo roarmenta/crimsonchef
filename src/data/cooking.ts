@@ -390,6 +390,8 @@ export const COOKING = defineDomain({
     itemNoun: 'ingredients',
     blueprintsHeading: 'Recipes known',
     blueprintsNote: '',
+    scanGuide:
+      'Identify every COOKING-RELEVANT item and its quantity. Category-collapsing rules mirror the game\'s substitution system: any vegetable (onion, carrot, radish, turnip, cucumber, beet, flax…) → "vegetable"; any grain (wheat, barley, lentils, beans, peas, rice, grain sacks) → "grains"; any fruit or berry → "fruit", pears specifically → "pear"; regular red meat → "meat", whole birds or poultry → "bird_meat", "fine_meat" or "marbled_meat" only for the clearly higher-grade variant; fish by size → "small_fish", "medium_fish" or "large_fish", fillets → "fish_fillet". IGNORE everything that is not a cooking ingredient or cooked dish: insects, butterflies, cloth, thread, hides, feathers, tools, drinks in mugs, crafting materials, key items.',
     footer: `Recipe data compiled from IGN's Crimson Desert Cooking Guide (${DATA_VERSION}). Generic Meat/Vegetable/Grain/Fruit slots accept any ingredient of that category, matching the game's substitution rules. Fan-made tool — not affiliated with Pearl Abyss or IGN.`,
   },
 });

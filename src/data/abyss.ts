@@ -534,6 +534,8 @@ export const ABYSS = defineDomain({
     blueprintsHeading: 'Gear Blueprints',
     blueprintsNote:
       'Blueprints are sold by the witches in each region; read one to learn it. Tiers II and III use the same blueprint as tier I.',
+    scanGuide:
+      'Identify every item relevant to Abyss Gear crafting and its quantity: Abyss Cells, gems (Garnet, Azurite, Diamond, Epidote), reagents, rare materials and gear cores. Reagents are category tokens: any butterfly, flower or herb listed under the Attack Reagent id → "attack_reagent"; any beetle, insect, spider, snail or herb listed under the Defense Reagent id → "defense_reagent", except a Bear\'s Gallbladder → "bears_gallbladder"; any frog or toad → "medicinal_amphibian". Gear cores look like small socket gems labelled with a family name and a tier (I, II, III): map them to the matching core id and never guess a family you cannot read. IGNORE food, cooked dishes, cloth, thread, hides, feathers, tools, drinks and key items.',
     footer: `Abyss Gear data compiled from the Crimson Desert Database at crimsondesert.gaming.tools (${DATA_VERSION}): all 94 gear families. Reagent slots accept any item of that in-game category. Fan-made tool — not affiliated with Pearl Abyss or gaming.tools.`,
   },
 });

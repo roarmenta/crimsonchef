@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Inventory } from '../matcher';
 import { parseIngredientList } from '../parser';
 import type { Domain } from '../types';
+import Scanner from './Scanner';
 
 interface Props {
   domain: Domain;
@@ -54,6 +55,7 @@ export default function Pouch({ domain, inventory, onAdd, onRemove, onClear }: P
       <div className="pouch-header">
         <h2>Your Pouch</h2>
         <div className="pouch-header-actions">
+          <Scanner domain={domain} onAdd={onAdd} />
           {entries.length > 0 && (
             <button type="button" className="ghost-btn" onClick={onClear}>
               Clear all
