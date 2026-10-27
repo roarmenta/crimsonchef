@@ -22,8 +22,11 @@ export default function Palette({ domain, onAdd }: Props) {
         aria-label={domain.text.paletteSearch}
       />
       {domain.categories.map((cat) => {
+        // Aliases count too, so "peony" finds the Attack Reagent chip.
         const items = domain.ingredients.filter(
-          (i) => i.category === cat.id && (!q || i.name.toLowerCase().includes(q)),
+          (i) =>
+            i.category === cat.id &&
+            (!q || i.name.toLowerCase().includes(q) || (i.aliases ?? []).some((a) => a.includes(q))),
         );
         if (items.length === 0) return null;
         return (

@@ -17,7 +17,8 @@ export default function Pouch({ domain, inventory, onAdd, onRemove, onClear }: P
   const [dragOver, setDragOver] = useState(false);
   const byId = domain.ingredientById;
 
-  const entries = Object.entries(inventory).filter(([, qty]) => qty > 0);
+  // Ids this build doesn't know are kept in storage for other tabs but never shown.
+  const entries = Object.entries(inventory).filter(([id, qty]) => qty > 0 && byId[id] !== undefined);
 
   const submitText = () => {
     if (!text.trim()) return;

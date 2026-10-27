@@ -134,6 +134,12 @@ button:focus-visible {
     position: static;
     max-height: none;
   }
+
+  /* 94 blueprint checkboxes would push the pouch three screens down on a phone. */
+  .blueprint-list {
+    max-height: 40vh;
+    overflow-y: auto;
+  }
 }
 
 /* Palette */

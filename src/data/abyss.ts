@@ -3,8 +3,9 @@
 // Data source: Crimson Desert Database (crimsondesert.gaming.tools), Crafting Manuals →
 // Abyss Gears, data-mined from the game files. 94 families: 15 Enhanced Gear, 24 Special Gear, 10 Tactical Gear, 44 Skill Gear, 1 Abyss Parts.
 //
-// Enhanced tier I cores are made from an Abyss Cell, a gem and a reagent; every other
-// family is assembled from Enhanced tier I cores. Tiered families synthesize tier N+1 from
+// Enhanced tier I cores are made from an Abyss Cell, a gem and a reagent (or a rare material
+// for Composure, Vigor and Vitality); every other family is assembled from Enhanced tier I
+// cores. Tiered families synthesize tier N+1 from
 // two tier N cores (same blueprint); Skill Gears are single unique cores. Random
 // "special synthesis" shortcuts are kept as notes on the recipe they most likely produce.
 import { defineDomain } from '../domain';
@@ -24,9 +25,9 @@ const INGREDIENTS: Ingredient[] = [
   { id: 'epidote', name: 'Epidote', category: 'gem' },
   { id: 'garnet', name: 'Garnet', category: 'gem' },
   // Reagent categories — any member item fills the slot; member names are parser aliases
-  { id: 'alchemy_material', name: 'Alchemy Material (any)', category: 'reagent', aliases: ['alchemy material', 'alchemy materials', 'medicinal amphibian', 'medicinal amphibians', 'amphibian', 'amphibians', 'frog', 'frogs', 'toad', 'toads', 'burrowing toad', 'poison frog', 'tree frog'] },
-  { id: 'attack_reagent', name: 'Attack Reagent (any)', category: 'reagent', aliases: ['attack reagent', 'attack reagents', 'butterfly', 'butterflies', 'amaranth', 'begonia', 'buckeye butterfly', 'commander butterfly', 'crimson patch butterfly', 'diana fritillary butterfly', 'dunbaria', 'flame-bordered butterfly', 'marigold', 'monarch butterfly', 'orange-barred sulphur butterfly', 'peony', 'pink rosemary', 'prickly pear', 'red seaweed', 'red-spotted purple butterfly', 'regal fritillary butterfly', 'ruddy daggerwing butterfly', 'rusty tipped page butterfly', 'scarlet leafwing butterfly', 'shrubby sophora', 'sleepy scarlet butterfly', 'spotted lycaenid butterfly', 'tiger mimic queen butterfly', 'yellow comma butterfly'] },
-  { id: 'defense_reagent', name: 'Defense Reagent (any)', category: 'reagent', aliases: ['defense reagent', 'defense reagents', 'defence reagent', 'defence reagents', 'beetle', 'blue lavender', 'camel cricket', 'cockroach', 'false starwort', 'ginseng', 'jewel beetle', 'longhorn beetle', 'rhinoceros beetle', 'snail', 'snapdragon', 'stag beetle', 'taro', 'wharf roach', 'wild ginseng', 'yellow garden spider'] },
+  { id: 'medicinal_amphibian', name: 'Alchemy Material (any)', category: 'reagent', aliases: ['alchemy material', 'alchemy materials', 'medicinal amphibian', 'medicinal amphibians', 'amphibian', 'amphibians', 'frog', 'frogs', 'toad', 'toads', 'burrowing toad', 'poison frog', 'tree frog'] },
+  { id: 'attack_reagent', name: 'Attack Reagent (any)', category: 'reagent', aliases: ['attack reagent', 'attack reagents', 'butterfly', 'butterflies', 'peonies', 'sophora', 'sulphur butterfly', 'amaranth', 'begonia', 'buckeye butterfly', 'commander butterfly', 'crimson patch butterfly', 'diana fritillary butterfly', 'dunbaria', 'flame-bordered butterfly', 'marigold', 'monarch butterfly', 'orange-barred sulphur butterfly', 'peony', 'pink rosemary', 'prickly pear', 'red seaweed', 'red-spotted purple butterfly', 'regal fritillary butterfly', 'ruddy daggerwing butterfly', 'rusty tipped page butterfly', 'scarlet leafwing butterfly', 'shrubby sophora', 'sleepy scarlet butterfly', 'spotted lycaenid butterfly', 'tiger mimic queen butterfly', 'yellow comma butterfly'] },
+  { id: 'defense_reagent', name: 'Defense Reagent (any)', category: 'reagent', aliases: ['defense reagent', 'defense reagents', 'defence reagent', 'defence reagents', 'cockroaches', 'lavender', 'starwort', 'beetle', 'blue lavender', 'camel cricket', 'cockroach', 'false starwort', 'ginseng', 'jewel beetle', 'longhorn beetle', 'rhinoceros beetle', 'snail', 'snapdragon', 'stag beetle', 'taro', 'wharf roach', 'wild ginseng', 'yellow garden spider'] },
   // Rare Materials
   { id: 'bears_gallbladder', name: 'Bear\'s Gallbladder', category: 'material', aliases: ['bear gallbladder', 'bears gallbladder', 'gallbladder'] },
   { id: 'mercury', name: 'Mercury', category: 'material' },
@@ -239,7 +240,7 @@ const RECIPES: Recipe[] = [
   { id: 'destruction_2', name: 'Destruction II', station: 'Enhanced Gear', tool: 'Fits: Weapons, Gloves, Footwear', effects: ['Grants an increase in Attack'], blueprint: 'bp_destruction', requirements: [I('core_destruction_1', 2)] },
   { id: 'destruction_3', name: 'Destruction III', station: 'Enhanced Gear', tool: 'Fits: Weapons, Gloves, Footwear', effects: ['Grants an increase in Attack'], blueprint: 'bp_destruction', requirements: [I('core_destruction_2', 2)] },
   // Flameward
-  { id: 'flameward_1', name: 'Flameward I', station: 'Enhanced Gear', tool: 'Fits: Armor', effects: ['Grants an increase in Fire Resistance'], blueprint: 'bp_flameward', requirements: [I('abyss_cell', 1), I('diamond', 1), I('alchemy_material', 1)] },
+  { id: 'flameward_1', name: 'Flameward I', station: 'Enhanced Gear', tool: 'Fits: Armor', effects: ['Grants an increase in Fire Resistance'], blueprint: 'bp_flameward', requirements: [I('abyss_cell', 1), I('diamond', 1), I('medicinal_amphibian', 1)] },
   { id: 'flameward_2', name: 'Flameward II', station: 'Enhanced Gear', tool: 'Fits: Armor', effects: ['Grants an increase in Fire Resistance'], blueprint: 'bp_flameward', requirements: [I('core_flameward_1', 2)] },
   { id: 'flameward_3', name: 'Flameward III', station: 'Enhanced Gear', tool: 'Fits: Armor', effects: ['Grants an increase in Fire Resistance'], blueprint: 'bp_flameward', requirements: [I('core_flameward_2', 2)] },
   // Fortification
@@ -251,7 +252,7 @@ const RECIPES: Recipe[] = [
   { id: 'fortitude_2', name: 'Fortitude II', station: 'Enhanced Gear', tool: 'Fits: Shields, Gloves, Footwear', effects: ['Reduces Stamina consumption on guard'], blueprint: 'bp_fortitude', requirements: [I('core_fortitude_1', 2)] },
   { id: 'fortitude_3', name: 'Fortitude III', station: 'Enhanced Gear', tool: 'Fits: Shields, Gloves, Footwear', effects: ['Reduces Stamina consumption on guard'], blueprint: 'bp_fortitude', requirements: [I('core_fortitude_2', 2)] },
   // Frostward
-  { id: 'frostward_1', name: 'Frostward I', station: 'Enhanced Gear', tool: 'Fits: Armor', effects: ['Grants an increase in Ice Resistance'], blueprint: 'bp_frostward', requirements: [I('abyss_cell', 1), I('diamond', 1), I('alchemy_material', 1)] },
+  { id: 'frostward_1', name: 'Frostward I', station: 'Enhanced Gear', tool: 'Fits: Armor', effects: ['Grants an increase in Ice Resistance'], blueprint: 'bp_frostward', requirements: [I('abyss_cell', 1), I('diamond', 1), I('medicinal_amphibian', 1)] },
   { id: 'frostward_2', name: 'Frostward II', station: 'Enhanced Gear', tool: 'Fits: Armor', effects: ['Grants an increase in Ice Resistance'], blueprint: 'bp_frostward', requirements: [I('core_frostward_1', 2)] },
   { id: 'frostward_3', name: 'Frostward III', station: 'Enhanced Gear', tool: 'Fits: Armor', effects: ['Grants an increase in Ice Resistance'], blueprint: 'bp_frostward', requirements: [I('core_frostward_2', 2)] },
   // Haste
@@ -263,11 +264,11 @@ const RECIPES: Recipe[] = [
   { id: 'insight_2', name: 'Insight II', station: 'Enhanced Gear', tool: 'Fits: Weapons, Gloves, Footwear', effects: ['Grants an increase in Critical Rate'], blueprint: 'bp_insight', requirements: [I('core_insight_1', 2)] },
   { id: 'insight_3', name: 'Insight III', station: 'Enhanced Gear', tool: 'Fits: Weapons, Gloves, Footwear', effects: ['Grants an increase in Critical Rate'], blueprint: 'bp_insight', requirements: [I('core_insight_2', 2)] },
   // Shockward
-  { id: 'shockward_1', name: 'Shockward I', station: 'Enhanced Gear', tool: 'Fits: Armor', effects: ['Grants an increase in Lightning Resistance'], blueprint: 'bp_shockward', requirements: [I('abyss_cell', 1), I('diamond', 1), I('alchemy_material', 1)] },
+  { id: 'shockward_1', name: 'Shockward I', station: 'Enhanced Gear', tool: 'Fits: Armor', effects: ['Grants an increase in Lightning Resistance'], blueprint: 'bp_shockward', requirements: [I('abyss_cell', 1), I('diamond', 1), I('medicinal_amphibian', 1)] },
   { id: 'shockward_2', name: 'Shockward II', station: 'Enhanced Gear', tool: 'Fits: Armor', effects: ['Grants an increase in Lightning Resistance'], blueprint: 'bp_shockward', requirements: [I('core_shockward_1', 2)] },
   { id: 'shockward_3', name: 'Shockward III', station: 'Enhanced Gear', tool: 'Fits: Armor', effects: ['Grants an increase in Lightning Resistance'], blueprint: 'bp_shockward', requirements: [I('core_shockward_2', 2)] },
   // Surge
-  { id: 'surge_1', name: 'Surge I', station: 'Enhanced Gear', tool: 'Fits: Armor', effects: ['Grants an increase in Swim Speed'], blueprint: 'bp_surge', requirements: [I('abyss_cell', 1), I('diamond', 1), I('alchemy_material', 1)] },
+  { id: 'surge_1', name: 'Surge I', station: 'Enhanced Gear', tool: 'Fits: Armor', effects: ['Grants an increase in Swim Speed'], blueprint: 'bp_surge', requirements: [I('abyss_cell', 1), I('diamond', 1), I('medicinal_amphibian', 1)] },
   { id: 'surge_2', name: 'Surge II', station: 'Enhanced Gear', tool: 'Fits: Armor', effects: ['Grants an increase in Swim Speed'], blueprint: 'bp_surge', requirements: [I('core_surge_1', 2)] },
   { id: 'surge_3', name: 'Surge III', station: 'Enhanced Gear', tool: 'Fits: Armor', effects: ['Grants an increase in Swim Speed'], blueprint: 'bp_surge', requirements: [I('core_surge_2', 2)] },
   // Swift

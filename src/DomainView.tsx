@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import BlueprintPanel from './components/BlueprintPanel';
 import Palette from './components/Palette';
 import Pouch from './components/Pouch';
@@ -28,11 +28,12 @@ function loadInventory(domain: Domain): Inventory {
   try {
     const raw = localStorage.getItem(domain.storageKey);
     const parsed = raw ? (JSON.parse(raw) as Record<string, unknown>) : {};
-    // Drop ids the dataset no longer knows and anything that isn't a positive count.
+    // Keep every positive count, even for ids this build doesn't know: a tab running an older
+    // or newer build may own them, and dropping them here would erase them on the next write.
+    // Unknown ids are simply not rendered (see Pouch) and never match a recipe.
     return Object.fromEntries(
       Object.entries(parsed).filter(
-        (entry): entry is [string, number] =>
-          domain.ingredientById[entry[0]] !== undefined && typeof entry[1] === 'number' && entry[1] > 0,
+        (entry): entry is [string, number] => typeof entry[1] === 'number' && Number.isFinite(entry[1]) && entry[1] > 0,
       ),
     );
   } catch {
@@ -61,20 +62,38 @@ export default function DomainView({ domain }: { domain: Domain }) {
   const [query, setQuery] = useState('');
   const [station, setStation] = useState('all');
 
+  // State that arrived via the storage event is already stored; writing it back would let a
+  // tab on an older build (which can't know newer ids) overwrite this one's pouch.
+  const inventoryFromStorage = useRef(false);
+  const blueprintsFromStorage = useRef(false);
+
   useEffect(() => {
+    if (inventoryFromStorage.current) {
+      inventoryFromStorage.current = false;
+      return;
+    }
     persist(domain.storageKey, inventory);
   }, [domain, inventory]);
 
   useEffect(() => {
+    if (blueprintsFromStorage.current) {
+      blueprintsFromStorage.current = false;
+      return;
+    }
     if (domain.blueprints.length > 0) persist(blueprintKey(domain), blueprints);
   }, [domain, blueprints]);
 
   // Another tab wrote to our keys: re-read instead of overwriting its changes with a stale copy.
-  // (Writing an unchanged value fires no storage event, so the two tabs can't ping-pong.)
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
-      if (e.key === domain.storageKey) setInventory(loadInventory(domain));
-      if (e.key === blueprintKey(domain)) setBlueprints(loadBlueprints(domain));
+      if (e.key === domain.storageKey) {
+        inventoryFromStorage.current = true;
+        setInventory(loadInventory(domain));
+      }
+      if (e.key === blueprintKey(domain)) {
+        blueprintsFromStorage.current = true;
+        setBlueprints(loadBlueprints(domain));
+      }
     };
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
@@ -109,7 +128,7 @@ export default function DomainView({ domain }: { domain: Domain }) {
     );
   }, [results, query, station]);
 
-  const hasInventory = Object.values(inventory).some((n) => n > 0);
+  const hasInventory = Object.entries(inventory).some(([id, n]) => n > 0 && domain.ingredientById[id] !== undefined);
 
   return (
     <div className="app-body">

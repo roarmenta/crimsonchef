@@ -15,7 +15,8 @@ Two sections, each with its own pouch:
   [Crimson Desert Database](https://crimsondesert.gaming.tools/crafting/abyssgear). Currently
   all 94 families (176 recipes): 15 Enhanced, 24 Special, 10 Tactical and 44 Skill gears, plus
   the Faded Abyss Artifact. Enhanced tier I cores are made from an Abyss Cell, a gem and a
-  reagent; every other gear is assembled from Enhanced tier I cores, and tiered families
+  reagent (or a rare material for Composure, Vigor and Vitality); every other gear is
+  assembled from Enhanced tier I cores, and tiered families
   synthesize tier II and III from two cores of the tier below. The planner expands the whole
   chain ("First craft: Insight I ×4, Fortitude I ×4, Vigor I ×4, Fortune I ×4, Fortune II ×2")
   and only counts it when your materials really cover it. An optional **blueprint tracker**
