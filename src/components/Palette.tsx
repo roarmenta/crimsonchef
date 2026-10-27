@@ -1,36 +1,34 @@
 import { useState } from 'react';
-import { CATEGORY_LABELS, INGREDIENTS } from '../data/gamedata';
-import type { Category } from '../types';
-
-const CATEGORY_ORDER: Category[] = ['meat', 'seafood', 'produce', 'basic', 'special', 'dish'];
+import type { Domain } from '../types';
 
 interface Props {
+  domain: Domain;
   onAdd: (id: string, qty?: number) => void;
 }
 
-export default function Palette({ onAdd }: Props) {
+export default function Palette({ domain, onAdd }: Props) {
   const [filter, setFilter] = useState('');
   const q = filter.trim().toLowerCase();
 
   return (
     <aside className="palette">
-      <h2>Ingredients</h2>
+      <h2>{domain.text.paletteHeading}</h2>
       <input
         type="search"
         className="palette-search"
-        placeholder="Search ingredients…"
+        placeholder={domain.text.paletteSearch}
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
-        aria-label="Search ingredients"
+        aria-label={domain.text.paletteSearch}
       />
-      {CATEGORY_ORDER.map((cat) => {
-        const items = INGREDIENTS.filter(
-          (i) => i.category === cat && (!q || i.name.toLowerCase().includes(q)),
+      {domain.categories.map((cat) => {
+        const items = domain.ingredients.filter(
+          (i) => i.category === cat.id && (!q || i.name.toLowerCase().includes(q)),
         );
         if (items.length === 0) return null;
         return (
-          <details key={cat} open={cat !== 'dish' && cat !== 'special'}>
-            <summary>{CATEGORY_LABELS[cat]}</summary>
+          <details key={cat.id} open={!cat.collapsed}>
+            <summary>{cat.label}</summary>
             <div className="chip-list">
               {items.map((ing) => (
                 <button
