@@ -39,6 +39,11 @@ function RecipeCard({ domain, result }: { domain: Domain; result: MatchResult })
       {missingBlueprints.length > 0 && (
         <p className="blueprint-note">📜 Needs blueprint: {missingBlueprints.map(blueprintName).join(', ')}</p>
       )}
+      {recipe.notes?.map((note) => (
+        <p key={note} className="recipe-note">
+          {note}
+        </p>
+      ))}
     </article>
   );
 }

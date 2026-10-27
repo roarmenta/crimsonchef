@@ -13,9 +13,11 @@ Two sections, each with its own pouch:
   cooked dishes are flagged "Cook prereqs" when you could cook those dishes from your pouch.
 - **💠 Abyss Gear** — gear cores crafted by the witches. Data compiled from the
   [Crimson Desert Database](https://crimsondesert.gaming.tools/crafting/abyssgear). Currently
-  the 15 Enhanced Gear families (45 recipes across tiers I–III); Special, Skill and Tactical
-  gears are planned. Tier II and III cores are synthesized from two cores of the tier below,
-  so the planner expands the whole chain ("First craft: Destruction I ×4, Destruction II ×2")
+  all 94 families (176 recipes): 15 Enhanced, 24 Special, 10 Tactical and 44 Skill gears, plus
+  the Faded Abyss Artifact. Enhanced tier I cores are made from an Abyss Cell, a gem and a
+  reagent; every other gear is assembled from Enhanced tier I cores, and tiered families
+  synthesize tier II and III from two cores of the tier below. The planner expands the whole
+  chain ("First craft: Insight I ×4, Fortitude I ×4, Vigor I ×4, Fortune I ×4, Fortune II ×2")
   and only counts it when your materials really cover it. An optional **blueprint tracker**
   moves what you haven't learned yet into a "Blueprint needed" section.
 
@@ -68,8 +70,8 @@ without configuration changes.
 
 ## Updating game data
 
-When a game patch changes recipes, edit the domain file under `src/data/` and bump its
-`DATA_VERSION`. Substitution groups are defined in `groups`; each recipe requirement is a slot
+Cooking: edit `src/data/cooking.ts` by hand and bump its `DATA_VERSION`. Abyss Gear:
+`src/data/abyss.ts` is generated — see `scripts/README.md` for the extract-and-generate steps. Substitution groups are defined in `groups`; each recipe requirement is a slot
 that accepts either a specific ingredient or any member of a group. To add a crafting system,
 create a new domain file, build it with `defineDomain()`, and add it to `DOMAINS` in
 `src/data/index.ts` — the tab, pouch and matcher come for free.

@@ -40,6 +40,8 @@ export interface Recipe {
   requirements: Requirement[];
   /** Knowledge gate: id of the blueprint that must be learned before crafting (see Domain.blueprints). */
   blueprint?: string;
+  /** Free-text footnotes shown on the card, e.g. a random "special synthesis" shortcut. */
+  notes?: string[];
 }
 
 export interface Blueprint {

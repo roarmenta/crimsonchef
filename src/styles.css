@@ -558,3 +558,9 @@ button:focus-visible {
   font-size: 0.8rem;
   margin: 8px 0 0;
 }
+
+.recipe-note {
+  color: var(--text-dim);
+  font-size: 0.78rem;
+  margin: 8px 0 0;
+}

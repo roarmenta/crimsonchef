@@ -161,20 +161,18 @@ function matchOne(ctx: Ctx, recipe: Recipe, inventory: Inventory, allowCraft: bo
 }
 
 /**
- * True when the pouch holds anything that counts toward `recipe`, following crafted
- * ingredients down to their base materials (three tier I cores are progress toward tier III).
+ * True when the pouch holds something toward the recipe: a slot filled or partly filled, or
+ * a missing crafted ingredient that could be crafted at least once right now (three tier I
+ * cores are progress toward tier III). Base materials alone don't count, or an Abyss Cell
+ * would make every gear in the game read as "almost there".
  */
-function hasProgress(ctx: Ctx, recipe: Recipe, inventory: Inventory, depth: number): boolean {
-  if (depth >= MAX_DEPTH) return false;
-  return recipe.requirements.some((req) =>
-    req.options.some((opt) =>
-      sourcesFor(ctx, opt).some((id) => {
-        if ((inventory[id] ?? 0) > 0) return true;
-        const producer = ctx.recipeById[ctx.producer[id]];
-        return producer !== undefined && hasProgress(ctx, producer, inventory, depth + 1);
-      }),
-    ),
-  );
+function hasProgress(ctx: Ctx, slots: SlotResult[], inventory: Inventory): boolean {
+  if (slots.some((s) => s.ok || s.have > 0)) return true;
+  return slots.some((s) => {
+    const id = s.option.ingredient;
+    const producer = id === undefined ? undefined : ctx.recipeById[ctx.producer[id]];
+    return producer !== undefined && craft(ctx, producer, { ...inventory }, {}, 0, true);
+  });
 }
 
 function usesProducible(ctx: Ctx, recipe: Recipe): boolean {
@@ -224,10 +222,8 @@ export function matchAll(domain: Domain, inventory: Inventory, opts: MatchOption
         };
       }
     }
-    // "Almost there" means at most two slots short *and* something already in hand for it,
-    // counting lower-tier materials — otherwise one-slot recipes (a tier II core) would read
-    // as close when the pouch is empty, and three tier I cores wouldn't count toward tier III.
-    const progress = hasProgress(ctx, recipe, inventory, 0);
+    // "Almost there" means at most two slots short *and* some progress toward it.
+    const progress = hasProgress(ctx, direct.slots, inventory);
     return {
       recipe,
       ...direct,
