@@ -49,7 +49,7 @@ interface Ctx {
 
 /** Longest craft chain followed (a tier III core is depth 2). Guards against cyclic data. */
 const MAX_DEPTH = 6;
-const MAX_CRAFTS = 99;
+export const MAX_CRAFTS = 99;
 
 function sourcesFor(ctx: Ctx, opt: SlotOption): string[] {
   return opt.ingredient ? [opt.ingredient] : ctx.domain.groups[opt.group!].members;
@@ -160,6 +160,23 @@ function matchOne(ctx: Ctx, recipe: Recipe, inventory: Inventory, allowCraft: bo
   return { slots, missingCount, maxCrafts, prepSteps };
 }
 
+/**
+ * True when the pouch holds anything that counts toward `recipe`, following crafted
+ * ingredients down to their base materials (three tier I cores are progress toward tier III).
+ */
+function hasProgress(ctx: Ctx, recipe: Recipe, inventory: Inventory, depth: number): boolean {
+  if (depth >= MAX_DEPTH) return false;
+  return recipe.requirements.some((req) =>
+    req.options.some((opt) =>
+      sourcesFor(ctx, opt).some((id) => {
+        if ((inventory[id] ?? 0) > 0) return true;
+        const producer = ctx.recipeById[ctx.producer[id]];
+        return producer !== undefined && hasProgress(ctx, producer, inventory, depth + 1);
+      }),
+    ),
+  );
+}
+
 function usesProducible(ctx: Ctx, recipe: Recipe): boolean {
   return recipe.requirements.some((req) =>
     req.options.some((o) => o.ingredient !== undefined && ctx.producer[o.ingredient] !== undefined),
@@ -207,9 +224,10 @@ export function matchAll(domain: Domain, inventory: Inventory, opts: MatchOption
         };
       }
     }
-    // "Almost there" means at most two slots short *and* something already in hand for it —
-    // otherwise one-slot recipes (a tier II core) would read as close when the pouch is empty.
-    const progress = direct.slots.some((s) => s.ok || s.have > 0);
+    // "Almost there" means at most two slots short *and* something already in hand for it,
+    // counting lower-tier materials — otherwise one-slot recipes (a tier II core) would read
+    // as close when the pouch is empty, and three tier I cores wouldn't count toward tier III.
+    const progress = hasProgress(ctx, recipe, inventory, 0);
     return {
       recipe,
       ...direct,

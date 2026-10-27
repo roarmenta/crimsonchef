@@ -15,6 +15,15 @@ function blueprintKey(domain: Domain): string {
   return `crimson-chef-${domain.id}-blueprints-v1`;
 }
 
+/** Storage can be blocked or full; the app then keeps working for this session only. */
+function persist(key: string, value: unknown): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // Not persisted — same as a private window with site data blocked.
+  }
+}
+
 function loadInventory(domain: Domain): Inventory {
   try {
     const raw = localStorage.getItem(domain.storageKey);
@@ -53,12 +62,23 @@ export default function DomainView({ domain }: { domain: Domain }) {
   const [station, setStation] = useState('all');
 
   useEffect(() => {
-    localStorage.setItem(domain.storageKey, JSON.stringify(inventory));
+    persist(domain.storageKey, inventory);
   }, [domain, inventory]);
 
   useEffect(() => {
-    if (domain.blueprints.length > 0) localStorage.setItem(blueprintKey(domain), JSON.stringify(blueprints));
+    if (domain.blueprints.length > 0) persist(blueprintKey(domain), blueprints);
   }, [domain, blueprints]);
+
+  // Another tab wrote to our keys: re-read instead of overwriting its changes with a stale copy.
+  // (Writing an unchanged value fires no storage event, so the two tabs can't ping-pong.)
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === domain.storageKey) setInventory(loadInventory(domain));
+      if (e.key === blueprintKey(domain)) setBlueprints(loadBlueprints(domain));
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, [domain]);
 
   const add = (id: string, qty = 1) =>
     setInventory((inv) => {

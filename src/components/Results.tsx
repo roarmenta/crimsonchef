@@ -1,4 +1,4 @@
-import type { MatchResult, SlotResult } from '../matcher';
+import { MAX_CRAFTS, type MatchResult, type SlotResult } from '../matcher';
 import type { Domain } from '../types';
 
 function slotLabel(domain: Domain, slot: SlotResult): string {
@@ -14,7 +14,7 @@ function RecipeCard({ domain, result }: { domain: Domain; result: MatchResult })
     <article className={`recipe-card status-${status}`}>
       <header>
         <h3>{recipe.name}</h3>
-        {status === 'craftable' && <span className="badge craft">Craft ×{maxCrafts}</span>}
+        {status === 'craftable' && <span className="badge craft">Craft ×{maxCrafts >= MAX_CRAFTS ? `+` : maxCrafts}</span>}
         {status === 'prep' && <span className="badge prep">{domain.text.prepBadge}</span>}
         {status === 'blueprint' && <span className="badge blueprint">📜 Blueprint</span>}
       </header>

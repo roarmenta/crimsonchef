@@ -51,7 +51,7 @@ export function parseIngredientList(domain: Domain, text: string): ParseOutcome 
       }
     }
     const id = resolve(map, name);
-    if (id && qty > 0) {
+    if (id && Number.isSafeInteger(qty) && qty > 0) {
       outcome.added.push({ id, qty });
     } else {
       outcome.unknown.push(token);

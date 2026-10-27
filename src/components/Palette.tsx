@@ -27,7 +27,7 @@ export default function Palette({ domain, onAdd }: Props) {
         );
         if (items.length === 0) return null;
         return (
-          <details key={cat.id} open={!cat.collapsed}>
+          <details key={cat.id} open={!cat.collapsed || q !== ''}>
             <summary>{cat.label}</summary>
             <div className="chip-list">
               {items.map((ing) => (
