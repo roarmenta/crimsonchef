@@ -570,3 +570,153 @@ button:focus-visible {
   font-size: 0.78rem;
   margin: 8px 0 0;
 }
+
+/* Craft plan */
+.plan {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 20px;
+}
+
+.plan-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.plan-header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.plan-summary {
+  margin: 6px 0 10px;
+  color: var(--gold);
+}
+
+.plan-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.plan-control-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip-toggle {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-dim);
+  padding: 3px 10px;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.chip-toggle.on {
+  color: var(--text);
+  border-color: var(--gold);
+}
+
+.plan-banner {
+  color: #f0d9a0;
+  background: rgba(217, 164, 65, 0.1);
+  border: 1px solid rgba(217, 164, 65, 0.3);
+  border-radius: 8px;
+  padding: 6px 10px;
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+}
+
+.plan-shortfall {
+  color: var(--red);
+  font-size: 0.85rem;
+  margin: 0 0 8px;
+}
+
+.plan-products {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.plan-product {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--green-dim);
+  border-radius: 8px;
+  padding: 4px 10px;
+}
+
+.plan-product-name {
+  font-weight: 600;
+}
+
+.plan-product-meta {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  flex: 1;
+}
+
+.plan-product-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.plan-batch h3 {
+  margin: 10px 0 4px;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+}
+
+.plan-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.plan-step label {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.plan-step input {
+  margin-top: 4px;
+}
+
+.plan-step.done .plan-step-text {
+  text-decoration: line-through;
+  color: var(--text-dim);
+}
+
+.plan-step-mats {
+  color: var(--text-dim);
+}
+
+.plan-step-for {
+  color: var(--gold);
+  font-size: 0.82rem;
+}

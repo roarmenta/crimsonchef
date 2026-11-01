@@ -56,6 +56,15 @@ export interface CategoryDef {
   collapsed?: boolean;
 }
 
+/** Enables the crafting-plan panel for a domain. */
+export interface PlanConfig {
+  heading: string;
+  /** Ingredient whose embedded count measures a product's size (Abyss Cells); base units if absent. */
+  unitIngredient?: string;
+  /** Equipment chips the player can filter by; matched against "Fits: …" in Recipe.tool. */
+  equipment: string[];
+}
+
 /** UI copy that differs between crafting systems. */
 export interface DomainText {
   paletteHeading: string;
@@ -94,4 +103,5 @@ export interface Domain {
   categories: CategoryDef[];
   blueprints: Blueprint[];
   text: DomainText;
+  plan?: PlanConfig;
 }

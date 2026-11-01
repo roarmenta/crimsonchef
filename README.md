@@ -20,7 +20,12 @@ Two sections, each with its own pouch:
   synthesize tier II and III from two cores of the tier below. The planner expands the whole
   chain ("First craft: Insight I ×4, Fortitude I ×4, Vigor I ×4, Fortune I ×4, Fortune II ×2")
   and only counts it when your materials really cover it. An optional **blueprint tracker**
-  moves what you haven't learned yet into a "Blueprint needed" section.
+  moves what you haven't learned yet into a "Blueprint needed" section. The **Craft plan** panel
+  turns the whole pouch into ordered steps: pinned cores first, then the strongest core the pouch
+  can still make (one of each), then repeats until nothing is craftable, so leftovers are only
+  items that can't form a core. Power is scored by proxy, since the game publishes no numbers:
+  Abyss Cells inside a core × 1 / 2 / 4 for tier I / II / III. Pin, skip, filter by the equipment
+  you socket, tick steps as you craft them and the pouch follows.
 
 Fan-made tool — not affiliated with Pearl Abyss, IGN, or gaming.tools.
 

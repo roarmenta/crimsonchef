@@ -310,6 +310,11 @@ export const ABYSS = defineDomain({
 ${CATEGORY_ORDER.map((c) => `    { id: ${q(c)}, label: ${q(CATEGORY_LABELS[c])}${c.startsWith('core_') ? ', collapsed: true' : ''} },`).join('\n')}
   ],
   blueprints: BLUEPRINTS,
+  plan: {
+    heading: 'Craft plan',
+    unitIngredient: 'abyss_cell',
+    equipment: ['Melee', 'Bows', 'Shields', 'Armor', 'Gloves', 'Footwear'],
+  },
   text: {
     paletteHeading: 'Materials',
     paletteSearch: 'Search materials…',

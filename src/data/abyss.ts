@@ -519,6 +519,11 @@ export const ABYSS = defineDomain({
     { id: 'core_other', label: 'Special & Tactical Cores (crafted)', collapsed: true },
   ],
   blueprints: BLUEPRINTS,
+  plan: {
+    heading: 'Craft plan',
+    unitIngredient: 'abyss_cell',
+    equipment: ['Melee', 'Bows', 'Shields', 'Armor', 'Gloves', 'Footwear'],
+  },
   text: {
     paletteHeading: 'Materials',
     paletteSearch: 'Search materials…',
