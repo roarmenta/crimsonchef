@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Inventory } from '../matcher';
-import { planPouch, planToText, type Pin, type Plan, type Priority } from '../planner';
+import { planPouch, planToText, type Pin, type Plan, type PlanStep, type Priority } from '../planner';
 import type { Domain } from '../types';
 
 interface Props {
@@ -96,10 +96,12 @@ export default function PlanPanel({ domain, inventory, learned, onAdd }: Props) 
   const plan = session?.plan ?? livePlan;
   const done = session?.done ?? plan.steps.map(() => false);
   const allDone = plan.steps.length > 0 && done.every(Boolean);
+  // A step can only be ticked once the pouch holds its inputs, i.e. after the steps it depends on.
+  const canDo = (step: PlanStep) => step.inputs.every((x) => (inventory[x.id] ?? 0) >= x.qty);
 
   const markDone = (index: number) => {
     const step = plan.steps[index];
-    if (!step || done[index]) return;
+    if (!step || done[index] || !canDo(step)) return;
     const next: Inventory = { ...inventory };
     for (const input of step.inputs) {
       next[input.id] = (next[input.id] ?? 0) - input.qty;
@@ -121,8 +123,15 @@ export default function PlanPanel({ domain, inventory, learned, onAdd }: Props) 
   };
   const pinCount = (recipeId: string) => options.pins.find((p) => p.recipeId === recipeId)?.count;
   const setPin = (recipeId: string, count: number) => {
-    const others = options.pins.filter((p) => p.recipeId !== recipeId);
-    update({ pins: count > 0 ? [...others, { recipeId, count }] : others, skips: options.skips.filter((id) => id !== recipeId) });
+    // Edit a pin in place so the pin order (priority) is kept.
+    const exists = options.pins.some((p) => p.recipeId === recipeId);
+    const pins =
+      count > 0
+        ? exists
+          ? options.pins.map((p) => (p.recipeId === recipeId ? { recipeId, count } : p))
+          : [...options.pins, { recipeId, count }]
+        : options.pins.filter((p) => p.recipeId !== recipeId);
+    update({ pins, skips: options.skips.filter((id) => id !== recipeId) });
   };
   const skip = (recipeId: string) =>
     update({ skips: [...options.skips, recipeId], pins: options.pins.filter((p) => p.recipeId !== recipeId) });
@@ -215,7 +224,10 @@ export default function PlanPanel({ domain, inventory, learned, onAdd }: Props) 
 
       {plan.shortfalls.map((s) => (
         <p key={s.recipeId} className="plan-shortfall">
-          📌 {recipeName(s.recipeId)}: this pouch can make {s.made} of {s.wanted}.{' '}
+          📌 {recipeName(s.recipeId)}:{' '}
+          {s.blueprint
+            ? `blueprint not learned (${domain.blueprints.find((b) => b.id === s.blueprint)?.name ?? s.blueprint}).`
+            : `this pouch can make ${s.made} of ${s.wanted}.`}{' '}
           <button type="button" className="link-btn" onClick={() => setPin(s.recipeId, 0)}>
             unpin
           </button>
@@ -227,6 +239,7 @@ export default function PlanPanel({ domain, inventory, learned, onAdd }: Props) 
           {plan.products.map((p) => {
             const recipe = recipeById[p.recipeId];
             const pinned = pinCount(p.recipeId);
+            const shown = Math.max(pinned ?? 0, p.count);
             return (
               <li key={p.recipeId} className="plan-product">
                 <span className="plan-product-name">
@@ -237,11 +250,11 @@ export default function PlanPanel({ domain, inventory, learned, onAdd }: Props) 
                   {recipe.station} · {recipe.tool} · {p.points * p.count} pts
                 </span>
                 <span className="plan-product-actions">
-                  <button type="button" className="qty-btn" onClick={() => (p.count <= 1 && !pinned ? skip(p.recipeId) : setPin(p.recipeId, (pinned ?? p.count) - 1))} aria-label={`One fewer ${recipe.name}`}>
+                  <button type="button" className="qty-btn" onClick={() => (shown <= 1 ? skip(p.recipeId) : setPin(p.recipeId, shown - 1))} aria-label={shown <= 1 ? `Skip ${recipe.name}` : `One fewer ${recipe.name}`}>
                     −
                   </button>
                   <b>×{p.count}</b>
-                  <button type="button" className="qty-btn" onClick={() => setPin(p.recipeId, (pinned ?? p.count) + 1)} aria-label={`One more ${recipe.name}`}>
+                  <button type="button" className="qty-btn" onClick={() => setPin(p.recipeId, shown + 1)} aria-label={`One more ${recipe.name}`}>
                     +
                   </button>
                   <button type="button" className="qty-btn remove" onClick={() => skip(p.recipeId)} aria-label={`Skip ${recipe.name}`} title="Don't make this">
@@ -280,7 +293,7 @@ export default function PlanPanel({ domain, inventory, learned, onAdd }: Props) 
               return (
                 <li key={step.recipeId} className={`plan-step ${done[i] ? 'done' : ''}`}>
                   <label>
-                    <input type="checkbox" checked={done[i]} disabled={done[i] || session?.stale} onChange={() => markDone(i)} aria-label={`Done: craft ${recipeName(step.recipeId)} ×${step.count}`} />
+                    <input type="checkbox" checked={done[i]} disabled={done[i] || session?.stale || !canDo(step)} title={!done[i] && !canDo(step) ? 'Finish the earlier steps first' : undefined} onChange={() => markDone(i)} aria-label={`Done: craft ${recipeName(step.recipeId)} ×${step.count}`} />
                     <span className="plan-step-text">
                       <b>
                         Craft {recipeName(step.recipeId)} ×{step.count}

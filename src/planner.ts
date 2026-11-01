@@ -49,6 +49,8 @@ export interface PinShortfall {
   recipeId: string;
   wanted: number;
   made: number;
+  /** Set when the pin can't be made because its blueprint isn't learned. */
+  blueprint?: string;
 }
 
 export interface Plan {
@@ -70,8 +72,6 @@ export interface Power {
   /** size × 1 / 2 / 4 for tier I / II / III: two cores become one that takes one socket. */
   points: number;
 }
-
-const MAX_PRODUCTS = 300;
 
 function tierOf(name: string): number | null {
   if (name.endsWith(' III')) return 3;
@@ -122,7 +122,13 @@ export function fitsOf(recipe: Recipe): string[] {
 }
 
 function rankKey(p: Power, priority: Priority): number[] {
-  return priority === 'tiers' ? [p.tier ?? 1, p.points] : [p.points, p.tier ?? 1];
+  if (priority === 'tiers') {
+    // Highest tier first, and within tiers II and III the cheapest core first so the pouch
+    // spreads into more of them; at tier I, the stronger product first.
+    const tier = p.tier ?? 1;
+    return [tier, tier >= 2 ? -p.size : p.points];
+  }
+  return [p.points, p.tier ?? 1];
 }
 
 function compareKeys(a: number[], b: number[]): number {
@@ -144,11 +150,18 @@ interface Execution {
 export function planPouch(domain: Domain, inventory: Inventory, opts: PlanOptions = {}): Plan {
   const learned = opts.learned ?? null;
   const ctx = buildCtx(domain, learned);
+  // Points, depth and tier describe the recipe tree, not what the player has learned, so
+  // a held core from an unlearned family still counts for what it is.
+  const scoreCtx = learned ? buildCtx(domain, null) : ctx;
   const priority = opts.priority ?? 'biggest';
   const skips = new Set(opts.skips ?? []);
   const fits = opts.fits ? new Set(opts.fits) : null;
+  const pinned = new Map((opts.pins ?? []).map((p) => [p.recipeId, p.count]));
   const memo = new Map<string, Power>();
-  const power = (r: Recipe) => powerOf(ctx, r, memo);
+  const power = (r: Recipe) => powerOf(scoreCtx, r, memo);
+  const totalUnits = Object.values(inventory).reduce((n, q) => n + Math.max(0, q), 0);
+  // Every committed chain consumes at least one unit, so this bound can't cut a real plan short.
+  const maxProducts = totalUnits + 1;
   const usable = (r: Recipe) => !r.blueprint || !learned || learned.has(r.blueprint);
   const passesFits = (r: Recipe) => {
     if (!fits) return true;
@@ -195,10 +208,21 @@ export function planPouch(domain: Domain, inventory: Inventory, opts: PlanOption
   for (const pin of opts.pins ?? []) {
     const recipe = ctx.recipeById[pin.recipeId];
     if (!recipe || !usable(recipe)) {
-      shortfalls.push({ recipeId: pin.recipeId, wanted: pin.count, made: 0 });
+      shortfalls.push({ recipeId: pin.recipeId, wanted: pin.count, made: 0, blueprint: recipe?.blueprint });
       continue;
     }
     let made = 0;
+    const held = outputOf.get(recipe.id);
+    if (held) {
+      // Copies already in the pouch satisfy the pin, and are reserved like crafted ones.
+      const have = Math.min(pin.count, pool[held] ?? 0);
+      if (have > 0) {
+        pool[held] -= have;
+        reserved.set(held, (reserved.get(held) ?? 0) + have);
+        madeCount.set(recipe.id, (madeCount.get(recipe.id) ?? 0) + have);
+        made = have;
+      }
+    }
     while (made < pin.count) {
       const steps = tryChain(recipe);
       if (!steps) break;
@@ -219,12 +243,14 @@ export function planPouch(domain: Domain, inventory: Inventory, opts: PlanOption
     .sort((a, b) => compareKeys(b.key, a.key) || a.recipe.name.localeCompare(b.recipe.name));
 
   // Pass 1 makes one copy of each product, strongest first (variety for a limited socket count);
-  // pass 2 repeats the strongest until the pouch can't make anything else.
+  // pass 2 repeats the strongest until the pouch can't make anything else. Pinned products are
+  // exact counts, so neither pass makes more of them.
   for (const allowRepeats of [false, true]) {
-    for (let guard = 0; guard < MAX_PRODUCTS; guard++) {
+    for (let guard = 0; guard < maxProducts; guard++) {
       let best: { recipe: Recipe; steps: Steps; key: number[]; crafts: number } | null = null;
       for (const c of candidates) {
         if (best && compareKeys(c.key, best.key) < 0) break;
+        if (pinned.has(c.recipe.id)) continue;
         if (!allowRepeats && (madeCount.get(c.recipe.id) ?? 0) > 0) continue;
         const steps = tryChain(c.recipe);
         if (!steps) continue;
@@ -287,7 +313,6 @@ export function planPouch(domain: Domain, inventory: Inventory, opts: PlanOption
   }
   products.sort((a, b) => b.points - a.points || ctx.recipeById[a.recipeId].name.localeCompare(ctx.recipeById[b.recipeId].name));
 
-  const totalUnits = Object.values(inventory).reduce((n, q) => n + Math.max(0, q), 0);
   const leftoverUnits = leftover.reduce((n, l) => n + l.qty, 0);
   return {
     products,
