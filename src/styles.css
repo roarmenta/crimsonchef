@@ -729,3 +729,7 @@ button:focus-visible {
   font-size: 0.78rem;
   margin: 8px 0 0;
 }
+
+.modal:focus {
+  outline: none;
+}

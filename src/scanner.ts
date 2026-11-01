@@ -102,7 +102,7 @@ export async function scanInventoryImage(apiKey: string, imageBase64: string, do
 
   const response = await client.beta.messages.create({
     model: 'claude-opus-5-5',
-    max_tokens: 8192,
+    max_tokens: 16000,
     // If a safety classifier declines the image, the API re-runs the request on a
     // fallback model inside the same call (billed at that model's rates).
     betas: ['server-side-fallback-2026-07-01'],
@@ -125,11 +125,20 @@ export async function scanInventoryImage(apiKey: string, imageBase64: string, do
   if (response.stop_reason === 'refusal') {
     throw new Error('The model declined to process this image. Try a different screenshot.');
   }
+  // Thinking counts toward max_tokens, so a very busy screenshot can be cut off mid-JSON.
+  if (response.stop_reason !== 'end_turn') {
+    throw new Error('The scan was cut off before it finished — try a screenshot with fewer items, or crop it.');
+  }
   const textBlock = response.content.find((b) => b.type === 'text');
   if (!textBlock || !textBlock.text) {
     throw new Error('The scan returned no result — try again.');
   }
-  const result = JSON.parse(textBlock.text) as ScanResult;
+  let result: ScanResult;
+  try {
+    result = JSON.parse(textBlock.text) as ScanResult;
+  } catch {
+    throw new Error('The scan returned something unreadable — try again.');
+  }
   result.items = result.items.filter((item) => item.qty > 0);
   return result;
 }

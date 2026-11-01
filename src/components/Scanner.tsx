@@ -4,6 +4,24 @@ import type { Domain } from '../types';
 
 const KEY_STORAGE = 'crimson-chef-api-key';
 
+// Storage can be blocked or full; the key then lives in memory for this session only.
+function readStoredKey(): string {
+  try {
+    return localStorage.getItem(KEY_STORAGE) ?? '';
+  } catch {
+    return '';
+  }
+}
+
+function writeStoredKey(value: string | null): void {
+  try {
+    if (value === null) localStorage.removeItem(KEY_STORAGE);
+    else localStorage.setItem(KEY_STORAGE, value);
+  } catch {
+    // Not persisted — the key will be asked for again next visit.
+  }
+}
+
 type Stage = 'key' | 'pick' | 'scanning' | 'review' | 'error';
 
 interface ReviewRow extends ScanItem {
@@ -15,10 +33,12 @@ interface Props {
   onAdd: (id: string, qty?: number) => void;
 }
 
+const FOCUSABLE = 'button:not([disabled]), input:not([disabled]):not([hidden])';
+
 export default function Scanner({ domain, onAdd }: Props) {
   const byId = domain.ingredientById;
   const [open, setOpen] = useState(false);
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem(KEY_STORAGE) ?? '');
+  const [apiKey, setApiKey] = useState(readStoredKey);
   const [keyDraft, setKeyDraft] = useState('');
   const [stage, setStage] = useState<Stage>('key');
   const [rows, setRows] = useState<ReviewRow[]>([]);
@@ -26,27 +46,65 @@ export default function Scanner({ domain, onAdd }: Props) {
   const [error, setError] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  const dialog = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const stageRef = useRef(stage);
+  stageRef.current = stage;
 
   const openModal = () => {
     setStage(apiKey ? 'pick' : 'key');
     setOpen(true);
   };
-  const close = () => {
+  const close = useCallback(() => {
     setOpen(false);
     setRows([]);
     setError('');
-  };
+  }, []);
+
+  // Dialog behaviour: take focus on open, Escape closes (not mid-scan), Tab stays inside,
+  // and focus returns to the button that opened it.
+  useEffect(() => {
+    if (!open) return;
+    const el = dialog.current;
+    el?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (stageRef.current !== 'scanning') {
+          e.preventDefault();
+          close();
+        }
+        return;
+      }
+      if (e.key !== 'Tab' || !el) return;
+      const items = [...el.querySelectorAll<HTMLElement>(FOCUSABLE)];
+      if (items.length === 0) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (e.shiftKey && (document.activeElement === first || document.activeElement === el)) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      trigger.current?.focus();
+    };
+  }, [open, close]);
 
   const saveKey = () => {
     const key = keyDraft.trim();
     if (!key) return;
-    localStorage.setItem(KEY_STORAGE, key);
+    writeStoredKey(key);
     setApiKey(key);
     setKeyDraft('');
     setStage('pick');
   };
   const clearKey = () => {
-    localStorage.removeItem(KEY_STORAGE);
+    writeStoredKey(null);
     setApiKey('');
     setStage('key');
   };
@@ -70,7 +128,7 @@ export default function Scanner({ domain, onAdd }: Props) {
         setRows(result.items.map((item) => ({ ...item, include: true })));
         setSkipped(result.skipped);
         setStage(result.items.length > 0 ? 'review' : 'error');
-        if (result.items.length === 0) setError(`No  were recognized in that image.`);
+        if (result.items.length === 0) setError(`No ${domain.text.itemNoun} were recognized in that image.`);
       } catch (err) {
         setError(scanner.scanErrorMessage(err));
         setStage('error');
@@ -105,13 +163,27 @@ export default function Scanner({ domain, onAdd }: Props) {
 
   return (
     <>
-      <button type="button" className="ghost-btn" onClick={openModal} title="Scan a screenshot of your in-game inventory">
+      <button
+        ref={trigger}
+        type="button"
+        className="ghost-btn"
+        onClick={openModal}
+        title="Scan a screenshot of your in-game inventory"
+      >
         📷 Scan screenshot
       </button>
 
       {open && (
         <div className="modal-overlay" onClick={close}>
-          <div className="modal" role="dialog" aria-label="Scan inventory screenshot" onClick={(e) => e.stopPropagation()}>
+          <div
+            ref={dialog}
+            className="modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Scan inventory screenshot"
+            tabIndex={-1}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="modal-header">
               <h3>Scan inventory screenshot</h3>
               <button type="button" className="qty-btn remove" onClick={close} aria-label="Close">
@@ -122,8 +194,8 @@ export default function Scanner({ domain, onAdd }: Props) {
             {stage === 'key' && (
               <div className="modal-body">
                 <p>
-                  Scanning sends your screenshot to Claude (Anthropic's AI) to identify {domain.text.itemNoun}. It needs
-                  your own Anthropic API key — each scan costs a few cents on your account.
+                  Scanning sends your screenshot to Claude (Anthropic's AI) to identify {domain.text.itemNoun}. It
+                  needs your own Anthropic API key — each scan costs a few cents on your account.
                 </p>
                 <input
                   type="password"
