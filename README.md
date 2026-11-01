@@ -1,16 +1,28 @@
 # 🔥 Crimson Chef
 
-A cooking companion for **Crimson Desert**. Add the ingredients you have — by drag-and-drop,
-tap, or pasting a list — and instantly see every recipe you can cook, what you're close to,
-and what each dish needs.
+A crafting companion for **Crimson Desert**. Add what you have — by drag-and-drop, tap, or
+pasting a list — and instantly see everything you can make, what you're close to, and what
+each item needs.
 
-**Data:** compiled from IGN's [Cooking Guide – All Cooking Recipes](https://www.ign.com/wikis/crimson-desert/Cooking_Guide_-_All_Cooking_Recipes)
-(page updated 2026-03-20). Generic Meat/Vegetable/Grain/Fruit/Fish/Seafood slots accept any
-ingredient of that category, mirroring the game's substitution system. Feast recipes that
-require cooked dishes are flagged "Cook prereqs" when you could cook the prerequisite dishes
-from your current ingredients.
+Two sections, each with its own pouch:
 
-Fan-made tool — not affiliated with Pearl Abyss or IGN.
+- **🍳 Cooking** — all 86 recipes. Data compiled from IGN's
+  [Cooking Guide – All Cooking Recipes](https://www.ign.com/wikis/crimson-desert/Cooking_Guide_-_All_Cooking_Recipes)
+  (page updated 2026-03-20). Generic Meat/Vegetable/Grain/Fruit/Fish/Seafood slots accept any
+  ingredient of that category, mirroring the game's substitution system. Feasts that need
+  cooked dishes are flagged "Cook prereqs" when you could cook those dishes from your pouch.
+- **💠 Abyss Gear** — gear cores crafted by the witches. Data compiled from the
+  [Crimson Desert Database](https://crimsondesert.gaming.tools/crafting/abyssgear). Currently
+  all 94 families (176 recipes): 15 Enhanced, 24 Special, 10 Tactical and 44 Skill gears, plus
+  the Faded Abyss Artifact. Enhanced tier I cores are made from an Abyss Cell, a gem and a
+  reagent (or a rare material for Composure, Vigor and Vitality); every other gear is
+  assembled from Enhanced tier I cores, and tiered families
+  synthesize tier II and III from two cores of the tier below. The planner expands the whole
+  chain ("First craft: Insight I ×4, Fortitude I ×4, Vigor I ×4, Fortune I ×4, Fortune II ×2")
+  and only counts it when your materials really cover it. An optional **blueprint tracker**
+  moves what you haven't learned yet into a "Blueprint needed" section.
+
+Fan-made tool — not affiliated with Pearl Abyss, IGN, or gaming.tools.
 
 ## Develop
 
@@ -20,9 +32,24 @@ npm run dev      # local dev server
 npm run build    # type-check + production build to dist/
 ```
 
-Stack: Vite + React + TypeScript, no other runtime dependencies. Inventory persists in
-`localStorage`. All matching runs client-side in `src/matcher.ts`; the dataset lives in
-`src/data/gamedata.ts`.
+Stack: Vite + React + TypeScript, no other runtime dependencies. Pouches and blueprint
+progress persist in `localStorage`. All matching runs client-side.
+
+## How it's put together
+
+Each crafting system is a **domain** (`src/data/cooking.ts`, `src/data/abyss.ts`) built with
+`defineDomain()` from `src/domain.ts`: its ingredients, substitution groups, recipes, stations,
+palette categories, blueprints and UI copy. In dev, `defineDomain` validates every
+cross-reference (unknown ingredient ids, dangling `craftedBy`, missing blueprints) and throws,
+so a data typo fails at startup instead of silently hiding a recipe. The tab bar, palette,
+pouch and results are generic over the domain; `src/App.tsx` picks the domain from the hash
+route (`#/cooking`, `#/abyss`).
+
+The matcher (`src/matcher.ts`) fills each recipe slot greedily from the pouch, then — for
+ingredients that are themselves crafted (`craftedBy`) — plans the missing ones recursively,
+consuming real quantities as it goes. Statuses: **craftable**, **prep** (craftable after
+intermediate crafts), **blueprint** (materials are fine, knowledge is missing), **almost there**
+(at most two slots short, with something already in hand), and **locked**.
 
 ## Deploy
 
@@ -42,8 +69,10 @@ To serve the app from a subdomain you own:
 The Vite build uses `base: './'`, so the app works at any URL (project path or custom domain)
 without configuration changes.
 
-## Updating recipe data
+## Updating game data
 
-When a game patch changes recipes, edit `src/data/gamedata.ts` and bump `DATA_VERSION`.
-Ingredient substitution groups are defined in `GROUPS`; each recipe requirement is a slot that
-accepts either a specific ingredient or any member of a group.
+Cooking: edit `src/data/cooking.ts` by hand and bump its `DATA_VERSION`. Abyss Gear:
+`src/data/abyss.ts` is generated — see `scripts/README.md` for the extract-and-generate steps. Substitution groups are defined in `groups`; each recipe requirement is a slot
+that accepts either a specific ingredient or any member of a group. To add a crafting system,
+create a new domain file, build it with `defineDomain()`, and add it to `DOMAINS` in
+`src/data/index.ts` — the tab, pouch and matcher come for free.

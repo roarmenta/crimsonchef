@@ -58,10 +58,31 @@ body {
   color: var(--text-dim);
 }
 
-.header-controls {
+.tabs {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
+}
+
+.tab {
+  text-decoration: none;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.tab:hover {
+  color: var(--text);
+  border-color: var(--gold);
+}
+
+.tab.active {
+  background: var(--ember);
+  border-color: var(--ember);
+  color: #fff;
 }
 
 input[type='search'],
@@ -97,23 +118,36 @@ button:focus-visible {
   }
 }
 
+/* Sidebar: palette + blueprint tracker */
+.sidebar {
+  position: sticky;
+  top: 12px;
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+@media (max-width: 900px) {
+  .sidebar {
+    position: static;
+    max-height: none;
+  }
+
+  /* 94 blueprint checkboxes would push the pouch three screens down on a phone. */
+  .blueprint-list {
+    max-height: 40vh;
+    overflow-y: auto;
+  }
+}
+
 /* Palette */
 .palette {
   background: var(--bg-raised);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 14px;
-  position: sticky;
-  top: 12px;
-  max-height: calc(100vh - 24px);
-  overflow-y: auto;
-}
-
-@media (max-width: 900px) {
-  .palette {
-    position: static;
-    max-height: none;
-  }
 }
 
 .palette h2 {
@@ -424,4 +458,115 @@ button:focus-visible {
   font-size: 0.78rem;
   padding: 16px 0 28px;
   margin-top: 24px;
+}
+
+/* Results toolbar */
+.results-toolbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.results-toolbar input[type='search'] {
+  flex: 1;
+  min-width: 160px;
+}
+
+.pouch-header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Blueprint tracker */
+.blueprints {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.blueprints h2 {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+}
+
+.toggle-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.blueprint-summary {
+  display: flex;
+  gap: 10px;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  margin: 10px 0 4px;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--gold);
+  cursor: pointer;
+  padding: 0;
+  font-size: inherit;
+  text-decoration: underline;
+}
+
+.blueprint-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 8px;
+}
+
+.blueprint-list label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 2px 0;
+}
+
+.palette-note {
+  color: var(--text-dim);
+  font-size: 0.78rem;
+  margin: 10px 0 0;
+}
+
+/* Blueprint-gated and crafted-intermediate states */
+.recipe-card.status-blueprint {
+  border-color: #4a3f6b;
+  box-shadow: 0 0 0 1px #4a3f6b;
+}
+
+.badge.blueprint {
+  background: #3b3258;
+  color: #d9d0f5;
+}
+
+.req-list li.prep {
+  color: #f0d9a0;
+  background: rgba(217, 164, 65, 0.08);
+  border-color: rgba(217, 164, 65, 0.3);
+}
+
+.blueprint-note {
+  color: #c9bdf0;
+  font-size: 0.8rem;
+  margin: 8px 0 0;
+}
+
+.recipe-note {
+  color: var(--text-dim);
+  font-size: 0.78rem;
+  margin: 8px 0 0;
 }

@@ -1,12 +1,13 @@
-import type { Ingredient, IngredientGroup, Recipe, Requirement, Station } from '../types';
+import { defineDomain } from '../domain';
+import type { Ingredient, IngredientGroup, Recipe, Requirement } from '../types';
 
 // Data source: IGN "Cooking Guide - All Cooking Recipes" (Crimson Desert),
 // table "Crimson Desert Recipe List", page updated 2026-03-20.
 // Generic tokens (Meat, Vegetable, Grain, Fruit, Fish, Seafood) mirror the game's
 // category substitution system: any ingredient of that category fills the slot.
-export const DATA_VERSION = 'IGN 2026-03-20';
+const DATA_VERSION = 'IGN 2026-03-20';
 
-export const INGREDIENTS: Ingredient[] = [
+const INGREDIENTS: Ingredient[] = [
   // Meat
   { id: 'meat', name: 'Meat', category: 'meat', aliases: ['meats', 'lean meat'] },
   { id: 'fine_meat', name: 'Fine Meat', category: 'meat' },
@@ -70,11 +71,7 @@ export const INGREDIENTS: Ingredient[] = [
   { id: 'chocolate_dish', name: 'Chocolate', category: 'dish', craftedBy: 'chocolate' },
 ];
 
-export const INGREDIENT_BY_ID: Record<string, Ingredient> = Object.fromEntries(
-  INGREDIENTS.map((i) => [i.id, i]),
-);
-
-export const GROUPS: Record<string, IngredientGroup> = {
+const GROUPS: Record<string, IngredientGroup> = {
   any_meat: { label: 'Meat (any)', members: ['meat', 'fine_meat', 'marbled_meat'] },
   fine_meat_up: { label: 'Fine Meat', members: ['fine_meat', 'marbled_meat'] },
   any_fish: { label: 'Fish (any)', members: ['small_fish', 'medium_fish', 'large_fish'] },
@@ -101,13 +98,13 @@ const fillet = (n: number) => I('fish_fillet', n);
 const R = (
   id: string,
   name: string,
-  station: Station,
+  station: string,
   tool: string,
   effects: string[],
   requirements: Requirement[],
 ): Recipe => ({ id, name, station, tool, effects, requirements });
 
-export const RECIPES: Recipe[] = [
+const RECIPES: Recipe[] = [
   // ── Grilled Cooking (open fire) ────────────────────────────────────────────
   R('grilled_bird_meat', 'Grilled Bird Meat', 'Grilled', 'Fire', ['Health +120'], [I('bird_meat', 1)]),
   R('grilled_fish', 'Grilled Fish', 'Grilled', 'Fire', ['Health +160'], [I('medium_fish', 1)]),
@@ -357,13 +354,42 @@ export const RECIPES: Recipe[] = [
     [fruit(5), I('grilled_meat_steak_dish', 2), I('mixed_skewers_dish', 1), I('grain_soup_dish', 2), I('red_seaweed', 2)]),
 ];
 
-export const STATIONS: Station[] = ['Grilled', 'Field Grill', 'Field Pot', 'Special Griddle', 'Special Pot', 'Feast'];
+const STATIONS = ['Grilled', 'Field Grill', 'Field Pot', 'Special Griddle', 'Special Pot', 'Feast'];
 
-export const CATEGORY_LABELS: Record<string, string> = {
-  meat: 'Meat',
-  seafood: 'Fish & Seafood',
-  produce: 'Produce',
-  basic: 'Basics',
-  special: 'Special & Herbs',
-  dish: 'Cooked Dishes',
-};
+export const COOKING = defineDomain({
+  id: 'cooking',
+  label: 'Cooking',
+  icon: '🍳',
+  subtitle: 'Crimson Desert cooking companion',
+  dataVersion: DATA_VERSION,
+  // Key from before the app had sections — keeps existing pouches intact.
+  storageKey: 'crimson-chef-inventory-v1',
+  ingredients: INGREDIENTS,
+  groups: GROUPS,
+  recipes: RECIPES,
+  stations: STATIONS,
+  categories: [
+    { id: 'meat', label: 'Meat' },
+    { id: 'seafood', label: 'Fish & Seafood' },
+    { id: 'produce', label: 'Produce' },
+    { id: 'basic', label: 'Basics' },
+    { id: 'special', label: 'Special & Herbs', collapsed: true },
+    { id: 'dish', label: 'Cooked Dishes', collapsed: true },
+  ],
+  text: {
+    paletteHeading: 'Ingredients',
+    paletteSearch: 'Search ingredients…',
+    pouchEmpty: 'Drag ingredients here, tap ＋ in the list, or paste a list below — recipes update live.',
+    pasteExample: 'Paste a list… e.g. "3 eggs, 2 onion, salt x2, water"',
+    recipeSearch: 'Search recipes…',
+    allStations: 'All stations',
+    emptyHint:
+      'Your pouch is empty — add ingredients to light up recipes. Everything below shows what each dish needs.',
+    prepBadge: 'Cook prereqs',
+    prepLead: 'First cook:',
+    itemNoun: 'ingredients',
+    blueprintsHeading: 'Recipes known',
+    blueprintsNote: '',
+    footer: `Recipe data compiled from IGN's Crimson Desert Cooking Guide (${DATA_VERSION}). Generic Meat/Vegetable/Grain/Fruit slots accept any ingredient of that category, matching the game's substitution rules. Fan-made tool — not affiliated with Pearl Abyss or IGN.`,
+  },
+});
