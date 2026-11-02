@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Inventory } from '../matcher';
 import { planPouch, planToText, type Pin, type Plan, type PlanStep, type Priority } from '../planner';
+import { inventoryKey } from '../pouches';
 import type { Domain } from '../types';
 
 interface Props {
@@ -56,13 +57,6 @@ function saveOptions(domain: Domain, options: Options): void {
     // Not persisted; the options still apply for this session.
   }
 }
-
-const inventoryKey = (inv: Inventory) =>
-  Object.entries(inv)
-    .filter(([, q]) => q > 0)
-    .sort()
-    .map(([k, q]) => `${k}:${q}`)
-    .join(',');
 
 export default function PlanPanel({ domain, inventory, learned, onAdd }: Props) {
   const config = domain.plan!;

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Inventory } from '../matcher';
 import { parseIngredientList } from '../parser';
 import type { Domain } from '../types';
+import SavedPouches from './SavedPouches';
 
 interface Props {
   domain: Domain;
@@ -9,9 +10,10 @@ interface Props {
   onAdd: (id: string, qty?: number) => void;
   onRemove: (id: string) => void;
   onClear: () => void;
+  onReplace: (inventory: Inventory) => void;
 }
 
-export default function Pouch({ domain, inventory, onAdd, onRemove, onClear }: Props) {
+export default function Pouch({ domain, inventory, onAdd, onRemove, onClear, onReplace }: Props) {
   const [text, setText] = useState('');
   const [feedback, setFeedback] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -99,6 +101,7 @@ export default function Pouch({ domain, inventory, onAdd, onRemove, onClear }: P
         </button>
       </div>
       {feedback && <p className="pouch-feedback">{feedback}</p>}
+      <SavedPouches domain={domain} inventory={inventory} onReplace={onReplace} />
     </section>
   );
 }
