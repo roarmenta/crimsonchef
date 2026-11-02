@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import BlueprintPanel from './components/BlueprintPanel';
 import Palette from './components/Palette';
+import PlanPanel from './components/PlanPanel';
 import Pouch from './components/Pouch';
 import Results from './components/Results';
 import { matchAll, type Inventory } from './matcher';
@@ -154,6 +155,7 @@ export default function DomainView({ domain }: { domain: Domain }) {
       </div>
       <main>
         <Pouch domain={domain} inventory={inventory} onAdd={add} onRemove={remove} onClear={clear} />
+        {domain.plan && <PlanPanel domain={domain} inventory={inventory} learned={learned} onAdd={add} />}
         <div className="results-toolbar">
           <input
             type="search"

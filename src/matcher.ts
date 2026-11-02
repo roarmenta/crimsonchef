@@ -38,9 +38,9 @@ export interface MatchOptions {
   learned?: Set<string> | null;
 }
 
-type Steps = Record<string, number>;
+export type Steps = Record<string, number>;
 
-interface Ctx {
+export interface Ctx {
   domain: Domain;
   recipeById: Record<string, Recipe>;
   /** ingredient id → id of the recipe that produces it. */
@@ -51,7 +51,7 @@ interface Ctx {
 const MAX_DEPTH = 6;
 export const MAX_CRAFTS = 99;
 
-function sourcesFor(ctx: Ctx, opt: SlotOption): string[] {
+export function sourcesFor(ctx: Ctx, opt: SlotOption): string[] {
   return opt.ingredient ? [opt.ingredient] : ctx.domain.groups[opt.group!].members;
 }
 
@@ -60,7 +60,7 @@ function available(ctx: Ctx, opt: SlotOption, pool: Inventory): number {
 }
 
 /** Take `opt.qty` units out of the pool. Group options may mix members. Caller checked availability. */
-function consume(ctx: Ctx, opt: SlotOption, pool: Inventory): void {
+export function consume(ctx: Ctx, opt: SlotOption, pool: Inventory): void {
   let need = opt.qty;
   for (const id of sourcesFor(ctx, opt)) {
     const take = Math.min(need, pool[id] ?? 0);
@@ -134,7 +134,7 @@ function fillSlot(
 }
 
 /** Run `recipe` once against the pool. Atomic: pool and steps are untouched on failure. */
-function craft(ctx: Ctx, recipe: Recipe, pool: Inventory, steps: Steps, depth: number, allowCraft: boolean): boolean {
+export function craft(ctx: Ctx, recipe: Recipe, pool: Inventory, steps: Steps, depth: number, allowCraft: boolean): boolean {
   const scratchPool = { ...pool };
   const scratchSteps = { ...steps };
   for (const req of recipe.requirements) {
@@ -181,14 +181,25 @@ function usesProducible(ctx: Ctx, recipe: Recipe): boolean {
   );
 }
 
-export function matchAll(domain: Domain, inventory: Inventory, opts: MatchOptions = {}): MatchResult[] {
-  const learned = opts.learned ?? null;
+/**
+ * Build the planning context. With `learned`, recipes behind an unlearned blueprint are not
+ * producers, so chains never route through them; matchAll() passes null on purpose so a recipe
+ * whose only obstacle is knowledge still reads as "blueprint needed".
+ */
+export function buildCtx(domain: Domain, learned: Set<string> | null = null): Ctx {
   const recipeById: Record<string, Recipe> = Object.fromEntries(domain.recipes.map((r) => [r.id, r]));
   const producer: Record<string, string> = {};
   for (const ing of domain.ingredients) {
-    if (ing.craftedBy && recipeById[ing.craftedBy]) producer[ing.id] = ing.craftedBy;
+    const r = ing.craftedBy ? recipeById[ing.craftedBy] : undefined;
+    if (r && (!learned || !r.blueprint || learned.has(r.blueprint))) producer[ing.id] = r.id;
   }
-  const ctx: Ctx = { domain, recipeById, producer };
+  return { domain, recipeById, producer };
+}
+
+export function matchAll(domain: Domain, inventory: Inventory, opts: MatchOptions = {}): MatchResult[] {
+  const learned = opts.learned ?? null;
+  const ctx = buildCtx(domain);
+  const { recipeById } = ctx;
 
   // The planner ignores the blueprint gate so a recipe whose only obstacle is knowledge
   // still reads as "blueprint needed" rather than "missing materials".
