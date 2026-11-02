@@ -113,6 +113,7 @@ export default function DomainView({ domain }: { domain: Domain }) {
       return next;
     });
   const clear = () => setInventory({});
+  const replace = (next: Inventory) => setInventory({ ...next });
 
   const learned = useMemo(
     () => (blueprints.tracking ? new Set(blueprints.learned) : null),
@@ -154,7 +155,7 @@ export default function DomainView({ domain }: { domain: Domain }) {
         )}
       </div>
       <main>
-        <Pouch domain={domain} inventory={inventory} onAdd={add} onRemove={remove} onClear={clear} />
+        <Pouch domain={domain} inventory={inventory} onAdd={add} onRemove={remove} onClear={clear} onReplace={replace} />
         {domain.plan && <PlanPanel domain={domain} inventory={inventory} learned={learned} onAdd={add} />}
         <div className="results-toolbar">
           <input

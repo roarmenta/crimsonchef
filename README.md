@@ -4,7 +4,8 @@ A crafting companion for **Crimson Desert**. Add what you have — by drag-and-d
 pasting a list — and instantly see everything you can make, what you're close to, and what
 each item needs.
 
-Two sections, each with its own pouch:
+Two sections, each with its own pouch. A pouch can be saved under a name ("Pouch 1", "Farming
+run") and loaded, renamed, overwritten or deleted later, per section, in the browser.
 
 - **🍳 Cooking** — all 86 recipes. Data compiled from IGN's
   [Cooking Guide – All Cooking Recipes](https://www.ign.com/wikis/crimson-desert/Cooking_Guide_-_All_Cooking_Recipes)
