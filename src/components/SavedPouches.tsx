@@ -42,14 +42,26 @@ export default function SavedPouches({ domain, inventory, onReplace }: Props) {
     setSaved(next);
     storeSavedPouches(domain, next);
   };
-  const count = unitCount(inventory);
-  const currentKey = inventoryKey(inventory);
-  const isLoaded = (p: SavedPouch) => inventoryKey(p.inventory) === currentKey;
+  // Writes that follow a confirm dialog start from what is actually stored, so a save made in
+  // another tab while the dialog was open isn't overwritten with this tab's stale list.
+  const live = () => loadSavedPouches(domain);
+  // Only ids this build knows count as items (unknown ids are carried for other builds but never shown).
+  const visible = (inv: Inventory): Inventory =>
+    Object.fromEntries(Object.entries(inv).filter(([id, q]) => q > 0 && domain.ingredientById[id] !== undefined));
+  const count = unitCount(visible(inventory));
+  const currentKey = inventoryKey(visible(inventory));
+  const isLoaded = (p: SavedPouch) => inventoryKey(visible(p.inventory)) === currentKey;
   const currentIsSaved = saved.some(isLoaded);
 
   const save = () => {
-    const name = normalizeName(nameDraft, saved);
-    persist([...saved, { id: newPouchId(), name, inventory: { ...inventory }, savedAt: new Date().toISOString() }]);
+    if (count === 0) {
+      setNaming(false);
+      setFeedback('Add something to the pouch first.');
+      return;
+    }
+    const current = live();
+    const name = normalizeName(nameDraft, current);
+    persist([...current, { id: newPouchId(), name, inventory: { ...inventory }, savedAt: new Date().toISOString() }]);
     setNaming(false);
     setNameDraft('');
     setFeedback(`Saved as “${name}”.`);
@@ -62,22 +74,34 @@ export default function SavedPouches({ domain, inventory, onReplace }: Props) {
   };
   const overwrite = (p: SavedPouch) => {
     if (!window.confirm(`Overwrite “${p.name}” with your current pouch (${count} items)?`)) return;
-    persist(saved.map((s) => (s.id === p.id ? { ...s, inventory: { ...inventory }, savedAt: new Date().toISOString() } : s)));
+    const current = live();
+    if (!current.some((s) => s.id === p.id)) {
+      persist(current);
+      setFeedback(`“${p.name}” was deleted in another tab.`);
+      return;
+    }
+    persist(current.map((s) => (s.id === p.id ? { ...s, inventory: { ...inventory }, savedAt: new Date().toISOString() } : s)));
     setFeedback(`Updated “${p.name}”.`);
   };
   const remove = (p: SavedPouch) => {
     if (!window.confirm(`Delete “${p.name}”?`)) return;
-    persist(saved.filter((s) => s.id !== p.id));
+    persist(live().filter((s) => s.id !== p.id));
     setFeedback(`Deleted “${p.name}”.`);
   };
+  // Close the name row if the pouch empties under it.
+  useEffect(() => {
+    if (count === 0) setNaming(false);
+  }, [count]);
+
   const startRename = (p: SavedPouch) => {
     setRenamingId(p.id);
     setRenameDraft(p.name);
   };
   const finishRename = () => {
     if (renamingId === null) return;
-    const name = normalizeName(renameDraft, saved.filter((s) => s.id !== renamingId));
-    persist(saved.map((s) => (s.id === renamingId ? { ...s, name } : s)));
+    const current = live();
+    const name = normalizeName(renameDraft, current.filter((s) => s.id !== renamingId));
+    persist(current.map((s) => (s.id === renamingId ? { ...s, name } : s)));
     setRenamingId(null);
   };
 
@@ -151,7 +175,7 @@ export default function SavedPouches({ domain, inventory, onReplace }: Props) {
                     title={loaded ? 'This pouch is loaded' : `Load ${p.name}`}
                     aria-pressed={loaded}
                   >
-                    {p.name} <span className="saved-count">{unitCount(p.inventory)}</span>
+                    {p.name} <span className="saved-count">{unitCount(visible(p.inventory))}</span>
                   </button>
                 )}
                 <button type="button" className="qty-btn" onClick={() => startRename(p)} title="Rename" aria-label={`Rename ${p.name}`}>

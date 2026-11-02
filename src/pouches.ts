@@ -65,7 +65,7 @@ export function newPouchId(): string {
 /** "Pouch N" with the first N that isn't taken. */
 export function defaultPouchName(existing: SavedPouch[]): string {
   const names = new Set(existing.map((p) => p.name));
-  let n = existing.length + 1;
+  let n = 1;
   while (names.has(`Pouch ${n}`)) n++;
   return `Pouch ${n}`;
 }
